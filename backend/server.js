@@ -8,6 +8,24 @@ const app = express();
 
 app.use(express.json()); //allow to parse JSON data in the request body
 
+app.get("/api/products", async (req, res) => {
+	try {
+		const products = await Product.find();
+		res.status(200).json({
+			success: true,
+			message: "Products fetched successfully",
+			data: products,
+		});
+	} catch (error) {
+		console.log("Error fetching products: ", error);
+		res.status(500).json({
+			success: false,
+			message: "Error fetching products",
+			error: error.message,
+		});
+	}
+});
+
 app.post("/api/products", async (req, res) => {
 	const product = req.body;
 	if (!product.name || !product.price || !product.image) {
