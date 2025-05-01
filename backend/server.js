@@ -1,7 +1,7 @@
 import express from "express";
 import { connectDB } from "./config/db.js";
 import Product from "./models/product.model.js";
-
+import mongoose from "mongoose";
 connectDB();
 
 const app = express();
@@ -21,6 +21,36 @@ app.get("/api/products", async (req, res) => {
 		res.status(500).json({
 			success: false,
 			message: "Error fetching products",
+			error: error.message,
+		});
+	}
+});
+
+app.put("/api/products/:id", async (req, res) => {
+	const { id } = req.params;
+	const product = req.body;
+
+	if (!mongoose.Types.ObjectId.isValid(id)) {
+		return res.status(404).json({
+			success: false,
+			message: "Invalid product ID",
+		});
+	}
+
+	try {
+		const updatedProduct = await Product.findByIdAndUpdate(id, product, {
+			new: true,
+		});
+		res.status(200).json({
+			success: true,
+			message: "Product updated successfully",
+			data: updatedProduct,
+		});
+	} catch (error) {
+		console.log("Error updating product: ", error);
+		res.status(500).json({
+			success: false,
+			message: "Error updating product",
 			error: error.message,
 		});
 	}
