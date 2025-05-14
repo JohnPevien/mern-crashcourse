@@ -1,4 +1,5 @@
-import { Container, Flex, Text, Link, HStack, Button } from "@chakra-ui/react";
+import { Container, Flex, Text, HStack, Button } from "@chakra-ui/react";
+import { Link } from "react-router";
 import { FaPlusSquare } from "react-icons/fa";
 import { useTheme } from "next-themes";
 
