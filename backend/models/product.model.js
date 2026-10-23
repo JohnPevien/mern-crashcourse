@@ -5,14 +5,18 @@ const productSchema = new mongoose.Schema(
 		name: {
 			type: String,
 			required: true,
+			trim: true,
+			minlength: 1,
 		},
 		price: {
 			type: Number,
 			required: true,
+			min: 0,
 		},
 		image: {
 			type: String,
 			required: true,
+			trim: true,
 		},
 	},
 	{
