@@ -21,7 +21,12 @@ export const getProducts = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const product = req.body;
+  // Allowlist: ignore any extra fields (no mass assignment); drop undefined
+  // so partial PUT bodies don't overwrite fields.
+  const { name, price, image } = req.body;
+  const updates = Object.fromEntries(
+    Object.entries({ name, price, image }).filter(([, v]) => v !== undefined)
+  );
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(404).json({
       success: false,
@@ -29,9 +34,16 @@ export const updateProduct = async (req, res) => {
     });
   }
   try {
-    const updatedProduct = await Product.findByIdAndUpdate(id, product, {
+    const updatedProduct = await Product.findByIdAndUpdate(id, updates, {
       new: true,
+      runValidators: true,
     });
+    if (!updatedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
     res.status(200).json({
       success: true,
       message: "Product updated successfully",
@@ -48,15 +60,16 @@ export const updateProduct = async (req, res) => {
 };
 
 export const createProduct = async (req, res) => {
-  const product = req.body;
-  if (!product.name || !product.price || !product.image) {
+  // Allowlist: only { name, price, image } reach the model (no mass assignment).
+  const { name, price, image } = req.body;
+  if (!name || !price || !image) {
     return res.status(400).json({
       success: false,
       message: "Missing required fields",
     });
   }
   try {
-    const newProduct = new Product(product);
+    const newProduct = new Product({ name, price, image });
     await newProduct.save();
     res.status(201).json({
       success: true,
@@ -82,7 +95,13 @@ export const deleteProduct = async (req, res) => {
     });
   }
   try {
-    await Product.findByIdAndDelete(id);
+    const deletedProduct = await Product.findByIdAndDelete(id);
+    if (!deletedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
     res.status(200).json({
       success: true,
       message: "Product deleted successfully",
